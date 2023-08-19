@@ -15,6 +15,13 @@ An integrated AI system with Audio-to-Text, Text-to-Image, NLP models, and centr
 - [License](#license)
 
 
+## Logs and Settings
+
+Detailed logs and settings used to generate the results can be found in the [Logs](./Logs) folder. The `scenery.log` file specifically describes the setting of the prompts used to generate the visual results.
+
+- [Scenery Log](./Logs/scenery.log): Describes the settings and context for the generated scenery images.
+
+
 ## Overview
 ...
 
