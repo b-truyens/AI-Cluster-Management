@@ -1,6 +1,6 @@
 # AI-Cluster-Management
 
-![Gamebox Image](https://example.com/path/to/gamebox.png)
+![Gamebox Image](./Results/Images/gamebox.png)
 
 An integrated AI system with Audio-to-Text, Text-to-Image, NLP models, and centralized management. Includes worker models, managers, and ethical considerations.
 ## Table of Contents
