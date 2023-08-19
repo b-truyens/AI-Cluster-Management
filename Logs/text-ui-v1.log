@@ -1,0 +1,1424 @@
+Hello!
+
+I have a machine with a x570 mother board, a Ryzen 5 3600 processor, 16gb of RAM and a Vega 56 ROCM enabled GPU.
+
+I would like to install this repository:
+
+https://github.com/oobabooga/text-generation-webui
+
+My current operating system is an instance of Ubuntu 22.04 desktop.
+
+ChatGPT
+Great! You have a solid setup, and it looks like you want to install a text-generation web UI from the provided GitHub repository on your Ubuntu 22.04 desktop.
+
+Here's a step-by-step guide to help you install the repository:
+
+Install Git (if not already installed):
+Open a terminal and run:
+
+bash
+Copy code
+sudo apt-get update
+sudo apt-get install git
+Clone the Repository:
+Navigate to the directory where you want to clone the repository and run:
+
+bash
+Copy code
+git clone https://github.com/oobabooga/text-generation-webui.git
+Navigate to the Repository Directory:
+
+bash
+Copy code
+cd text-generation-webui
+Install Dependencies:
+The repository might have specific dependencies or requirements. Make sure to check the README.md or any other documentation provided in the repository for instructions on installing necessary dependencies.
+
+Build and Run (if applicable):
+Follow the instructions provided in the repository's documentation to build and run the project. This might involve running specific scripts or using certain commands.
+
+Troubleshooting:
+If you encounter any issues, refer to the repository's documentation or issue tracker for support.
+
+Please note that the exact installation steps might vary depending on the specific requirements of the repository. Always refer to the official documentation provided in the repository for the most accurate and up-to-date instructions.
+
+If you need further assistance or encounter any issues, feel free to ask!
+
+
+
+
+User
+oobabooga ROCm Installation
+This document contains the steps I had to do to make oobabooga's Text generation web UI work on my machine with an AMD GPU. It mostly describe steps that differ from the official installation described on the GitHub pages, so also open that one in parallel.
+
+I use Artix Linux which should act the same as Arch Linux. I use python directly instead of conda but that should be similar.
+
+oobabooga ROCm Installation
+ROCm
+venv
+PyTorch
+With your package manager
+With PIP
+bitsandbytes
+My fork
+Old fork
+GPTQ-for-LLaMa
+cuda
+triton
+Finishing
+ROCm
+You probably need the whole ROCm sdk, on arch it's a meta package called rocm-hip-sdk.
+
+ROCm binaries need to be in your path, on arch everything ROCm related is in /opt/rocm so: export PATH=/opt/rocm/bin:$PATH.
+
+Since I have a RX 6700 XT, I have to fake my GPU with export HSA_OVERRIDE_GFX_VERSION=10.3.0 HCC_AMDGPU_TARGET=gfx1030.
+
+The rest of the guide will assume that you have your environment set correctly.
+
+venv
+Make the venv: python -m venv --system-site-packages venv
+
+I also give access to system packages as I personally installed python ROCm library with my package manager.
+
+Source it: source venv/bin/activate
+
+PyTorch
+You can either install those via your package manager if they on your distro or with PIP.
+
+With your package manager
+I installed those libraries thanks to arch and AUR:
+
+python-pytorch-opt-rocm
+python-torchvision-rocm
+python-torchvaudio-rocm
+With PIP
+Simply install it: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+
+Replace 5.4.2 by your version of ROCm.
+
+bitsandbytes
+I made my own fork as I wasn't satisfied with the current one, I let the old one below if this one doesn't work for you.
+
+My fork
+You can find it here: https://github.com/agrocylo/bitsandbytes-rocm
+
+Build the C++ library: make hip
+
+Install the python library: python setup.py install
+
+Old fork
+I had problem with bitsandbytes, had to built from https://github.com/broncotc/bitsandbytes-rocm with patches from https://github.com/0cc4m/bitsandbytes-rocm/tree/rocm and https://github.com/Titaniumtown/bitsandbytes-rocm/tree/patch-1.
+
+This repo have all those applied: https://github.com/Titaniumtown/bitsandbytes-rocm/tree/patch-2
+
+I also had to patch the Makefile to change my library location, adding /opt/rocm/lib and /usr/lib/clang/15.0.7/lib/linux. Also had to change hipcc location to /opt/rocm/bin/hipcc.
+
+Build the C++ library: make hip
+
+Install the python library: python setup.py install
+
+Note that it provide an old version and ooba require a more up to data one, so you might want to remove the version lock in ooba requirements.txt.
+
+GPTQ-for-LLaMa
+Currently they are two different branch of GPTQ, the one you want to use depend of the model, by default assume it's cuda but triton is become popular with newer quantization.
+
+cuda
+Use this fork: https://github.com/WapaMario63/GPTQ-for-LLaMa-ROCm
+
+You have to clone it in the repositories folder with the normal name GPTQ-for-LLaMa.
+
+Build it: python setup_rocm.py install
+
+triton
+On my machine, and in general it seem to be really slow on AMD GPU so if possible try to use model quantized with the cuda branch.
+
+We will have to install triton ROCm fork: https://github.com/ROCmSoftwarePlatform/triton
+
+I used pytorch-triton-rocm-v2.0.0 tag as GPTQ want 2.0.0, just follow their instruction to build and install.
+
+Then you can simply clone the triton branch of GPTQ-for-LLaMa in your repositories folder: https://github.com/qwopqwop200/GPTQ-for-LLaMa
+
+Finishing
+Finally, just install the rest of the requirements: pip install -r requirements.txt
+
+Now enjoy your local models.
+
+Pub: 04 Apr 2023 13:49
+Edit: 10 Apr 2023 00:01
+Views: 30096
+new·what·how·langs·contacts
+
+ChatGPT
+It looks like you've provided detailed instructions for installing oobabooga's Text Generation Web UI with ROCm support on an AMD GPU, specifically tailored for Arch Linux or Artix Linux. Since you're using Ubuntu 22.04, most of the steps should be similar, but there might be some differences in package management and paths.
+
+Here's a summary of the steps tailored for Ubuntu:
+
+Install ROCm SDK:
+Follow the official ROCm installation guide for Ubuntu.
+
+Set Environment Variables:
+
+bash
+Copy code
+export PATH=/opt/rocm/bin:$PATH
+If needed, set additional environment variables as described in your instructions.
+
+Create a Virtual Environment:
+
+bash
+Copy code
+python -m venv --system-site-packages venv
+source venv/bin/activate
+Install PyTorch with ROCm Support:
+You can install it via PIP as described in your instructions:
+
+bash
+Copy code
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+Build and Install bitsandbytes:
+Follow the instructions provided in your document, either using your fork or the old fork.
+
+Build and Install GPTQ-for-LLaMa:
+Follow the instructions for either the CUDA or Triton branch as described in your document.
+
+Finish Installation:
+
+bash
+Copy code
+pip install -r requirements.txt
+Enjoy Your Local Models!
+
+Please note that the paths and package names might vary slightly on Ubuntu, so be sure to adjust them as needed. If you encounter any issues or need further assistance, please let me know!
+
+
+
+
+User
+Yvz5BZ4rzX8VfYV
+
+ChatGPT
+It seems like you've entered a string of characters that doesn't provide enough context for me to understand. Could you please provide more details or clarify what you need assistance with? Thank you!
+
+
+
+
+User
+(base) boris@stable:~/models$ sudo apt update
+Hit:1 http://security.ubuntu.com/ubuntu jammy-security InRelease
+Hit:2 http://be.archive.ubuntu.com/ubuntu jammy InRelease            
+Hit:3 http://be.archive.ubuntu.com/ubuntu jammy-updates InRelease
+Hit:4 http://be.archive.ubuntu.com/ubuntu jammy-backports InRelease
+Get:5 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease [5.427 B]
+Err:5 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+Get:6 https://repo.radeon.com/rocm/apt/debian jammy InRelease [2.615 B]
+Err:6 https://repo.radeon.com/rocm/apt/debian jammy InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+Reading package lists... Done
+W: GPG error: https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+E: The repository 'https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+W: GPG error: https://repo.radeon.com/rocm/apt/debian jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+E: The repository 'https://repo.radeon.com/rocm/apt/debian jammy InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+
+ChatGPT
+It looks like you're encountering an issue with the GPG keys for the AMD repositories. This is a common problem when adding third-party repositories, and it's related to the authentication of the packages.
+
+You can resolve this by importing the required GPG key. Here's how you can do it:
+
+Import the GPG Key:
+Run the following command to import the key:
+
+bash
+Copy code
+sudo apt-key adv --fetch-keys https://repo.radeon.com/rocm/rocm.gpg.key
+Update the Package Lists Again:
+After importing the key, run the update command again:
+
+bash
+Copy code
+sudo apt update
+This should resolve the GPG key error, and you should be able to update your package lists without any issues.
+
+If you continue to encounter problems, please let me know!
+
+
+
+
+User
+(base) boris@stable:~/models$ sudo apt-key adv --fetch-keys https://repo.radeon.com/rocm/rocm.gpg.key
+Warning: apt-key is deprecated. Manage keyring files in trusted.gpg.d instead (see apt-key(8)).
+Executing: /tmp/apt-key-gpghome.t9cJHFKc3k/gpg.1.sh --fetch-keys https://repo.radeon.com/rocm/rocm.gpg.key
+gpg: requesting key from 'https://repo.radeon.com/rocm/rocm.gpg.key'
+gpg: key 9386B48A1A693C5C: public key "AMD MLSE DevOps <dl.MLSE.DevOps@amd.com>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+(base) boris@stable:~/models$ sudo apt update
+Hit:1 http://be.archive.ubuntu.com/ubuntu jammy InRelease
+Hit:2 http://be.archive.ubuntu.com/ubuntu jammy-updates InRelease    
+Hit:3 http://be.archive.ubuntu.com/ubuntu jammy-backports InRelease  
+Hit:4 http://security.ubuntu.com/ubuntu jammy-security InRelease     
+Get:5 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease [5.427 B]
+Err:5 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+Get:6 https://repo.radeon.com/rocm/apt/debian jammy InRelease [2.615 B]
+Err:6 https://repo.radeon.com/rocm/apt/debian jammy InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+Reading package lists... Done
+W: GPG error: https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+E: The repository 'https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+W: GPG error: https://repo.radeon.com/rocm/apt/debian jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+E: The repository 'https://repo.radeon.com/rocm/apt/debian jammy InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+(base) boris@stable:~/models$ 
+
+ChatGPT
+It seems the issue persists even after importing the key. Since apt-key is deprecated, we can try a different approach by manually adding the key to the trusted keyring.
+
+Here's how you can do it:
+
+Download the GPG Key:
+
+bash
+Copy code
+wget https://repo.radeon.com/rocm/rocm.gpg.key
+Add the Key to the Trusted Keyring:
+
+bash
+Copy code
+sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/rocm.gpg --import rocm.gpg.key
+Set Permissions:
+
+bash
+Copy code
+sudo chmod 644 /etc/apt/trusted.gpg.d/rocm.gpg
+Update the Package Lists Again:
+
+bash
+Copy code
+sudo apt update
+This method manually adds the key to the trusted keyring, bypassing the deprecated apt-key command.
+
+If you continue to encounter problems, please let me know!
+
+
+
+
+User
+(base) boris@stable:~/models$ wget https://repo.radeon.com/rocm/rocm.gpg.key
+--2023-08-19 06:52:37--  https://repo.radeon.com/rocm/rocm.gpg.key
+Resolving repo.radeon.com (repo.radeon.com)... 13.82.220.49
+Connecting to repo.radeon.com (repo.radeon.com)|13.82.220.49|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 3116 (3,0K) [application/octet-stream]
+Saving to: ‘rocm.gpg.key’
+
+rocm.gpg.key      100%[===========>]   3,04K  --.-KB/s    in 0s      
+
+2023-08-19 06:52:37 (3,19 GB/s) - ‘rocm.gpg.key’ saved [3116/3116]
+
+(base) boris@stable:~/models$ (base) boris@stable:~/models$ sudo apt-key adv --fetch-keys https://repo.radeon.com/rocm/rocm.gpg.key
+Warning: apt-key is deprecated. Manage keyring files in trusted.gpg.d instead (see apt-key(8)).     wget https://repo.radeon.com/rocm/rocm.g(base) boris@stable:~/models$ sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/rocm.gpg --import rocm.gpg.key
+gpg: keyring '/etc/apt/trusted.gpg.d/rocm.gpg' created
+gpg: directory '/root/.gnupg' created
+gpg: /root/.gnupg/trustdb.gpg: trustdb created
+gpg: key 9386B48A1A693C5C: public key "AMD MLSE DevOps <dl.MLSE.DevOps@amd.com>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+(base) boris@stable:~/models$ sudo chmod 644 /etc/apt/trusted.gpg.d/rocm.gpg
+(base) boris@stable:~/models$ sudo apt update
+Hit:1 http://be.archive.ubuntu.com/ubuntu jammy InRelease
+Hit:2 http://be.archive.ubuntu.com/ubuntu jammy-updates InRelease    
+Hit:3 http://be.archive.ubuntu.com/ubuntu jammy-backports InRelease  
+Hit:4 http://security.ubuntu.com/ubuntu jammy-security InRelease     
+Get:5 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease [5.427 B]
+Err:5 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+Get:6 https://repo.radeon.com/rocm/apt/debian jammy InRelease [2.615 B]
+Err:6 https://repo.radeon.com/rocm/apt/debian jammy InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+Reading package lists... Done
+W: GPG error: https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+E: The repository 'https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+W: GPG error: https://repo.radeon.com/rocm/apt/debian jammy InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 9386B48A1A693C5C
+E: The repository 'https://repo.radeon.com/rocm/apt/debian jammy InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+(base) boris@stable:~/models$ 
+
+
+ChatGPT
+I apologize for the continued trouble. It seems that the issue is more complex, and the key is not being recognized for the specific repositories.
+
+Since the manual methods have not worked, let's try a workaround by adding the AMD repositories manually and importing the keys.
+
+Add AMD Repositories:
+Open the AMD ROCm repository file:
+
+bash
+Copy code
+sudo nano /etc/apt/sources.list.d/rocm.list
+Add the following lines:
+
+bash
+Copy code
+deb [arch=amd64] https://repo.radeon.com/rocm/apt/debian/ jammy main
+deb [arch=amd64] https://repo.radeon.com/amdgpu/latest/ubuntu/ jammy main
+Save and exit the file.
+
+Import the GPG Key:
+
+bash
+Copy code
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9386B48A1A693C5C
+Update the Package Lists Again:
+
+bash
+Copy code
+sudo apt update
+This method adds the repositories manually and imports the key from the Ubuntu keyserver, which should resolve the issue.
+
+If this still doesn't work, there may be an issue with the repositories themselves or compatibility with your Ubuntu version. In that case, you may want to consult the AMD support forums or documentation for assistance specific to your system and Ubuntu version.
+
+Please let me know if you need further assistance!
+
+
+
+
+User
+https://repo.radeon.com/amdgpu/latest/ubuntu
+
+ChatGPT
+It seems like you've provided the URL for the AMD GPU repository for Ubuntu. This is the repository that appears to be causing the GPG key issue.
+
+If the previous steps did not resolve the issue, you might want to consider removing the repository and adding it again using the official instructions provided by AMD. Here's a general guide:
+
+Remove the Existing Repository:
+
+bash
+Copy code
+sudo rm /etc/apt/sources.list.d/amdgpu.list
+Add the AMD GPU Repository:
+Follow the official instructions provided by AMD for adding the repository to your system. This may include downloading a specific script or package that takes care of adding the repository and importing the necessary keys.
+
+Update the Package Lists:
+
+bash
+Copy code
+sudo apt update
+Since the exact method for adding the AMD GPU repository may vary, I recommend checking the official AMD documentation or support forums for the specific instructions for your GPU and Ubuntu version.
+
+If you have any specific questions or need further assistance, please let me know!
+
+
+
+
+User
+(base) boris@stable:~/models$ sudo apt update
+E: Conflicting values set for option Signed-By regarding source https://repo.radeon.com/amdgpu/latest/ubuntu/ jammy: /etc/apt/keyrings/rocm.gpg != 
+E: The list of sources could not be read.
+(base) boris@stable:~/models$ 
+
+
+ChatGPT
+It appears that there is a conflict with the keyring files, possibly due to previous attempts to add the key. Let's try to clean up the conflicting configuration and re-add the repository.
+
+Remove the Existing Repository File:
+
+bash
+Copy code
+sudo rm /etc/apt/sources.list.d/rocm.list
+Remove the Keyring File:
+
+bash
+Copy code
+sudo rm /etc/apt/trusted.gpg.d/rocm.gpg
+Add the AMD Repositories Manually:
+Open a new repository file:
+
+bash
+Copy code
+sudo nano /etc/apt/sources.list.d/amdgpu.list
+Add the following lines:
+
+bash
+Copy code
+deb [arch=amd64] https://repo.radeon.com/rocm/apt/debian/ jammy main
+deb [arch=amd64] https://repo.radeon.com/amdgpu/latest/ubuntu/ jammy main
+Save and exit the file.
+
+Import the GPG Key:
+
+bash
+Copy code
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9386B48A1A693C5C
+Update the Package Lists Again:
+
+bash
+Copy code
+sudo apt update
+This process removes the conflicting files and re-adds the repositories and key, which should resolve the conflict.
+
+If you continue to encounter issues, it may be best to consult the official AMD support forums or documentation, as there may be specific instructions or requirements for your GPU and Ubuntu version.
+
+
+
+
+User
+Hit:1 http://security.ubuntu.com/ubuntu jammy-security InRelease
+Hit:2 http://be.archive.ubuntu.com/ubuntu jammy InRelease            
+Hit:3 http://be.archive.ubuntu.com/ubuntu jammy-updates InRelease    
+Hit:4 http://be.archive.ubuntu.com/ubuntu jammy-backports InRelease
+Get:5 https://repo.radeon.com/rocm/apt/debian jammy InRelease [2.615 B]
+Get:6 https://repo.radeon.com/amdgpu/latest/ubuntu jammy InRelease [5.427 B]
+Get:7 https://repo.radeon.com/rocm/apt/debian jammy/main amd64 Packages [29,2 kB]
+Get:8 https://repo.radeon.com/amdgpu/latest/ubuntu jammy/main amd64 Packages [9.639 B]
+Fetched 38,9 kB in 1s (44,4 kB/s)     
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+13 packages can be upgraded. Run 'apt list --upgradable' to see them.
+W: https://repo.radeon.com/rocm/apt/debian/dists/jammy/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: https://repo.radeon.com/amdgpu/latest/ubuntu/dists/jammy/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+(base) boris@stable:~/models$ 
+
+ChatGPT
+It looks like the repositories were successfully added, but there's a warning about the keys being stored in a legacy keyring. While this warning is not critical and you can proceed with installing packages, you may want to address it to follow modern best practices.
+
+Here's how you can move the keys to the new trusted keyring location:
+
+Export the Existing Keys to a File:
+
+bash
+Copy code
+sudo apt-key export 9386B48A1A693C5C > rocm.gpg
+Delete the Existing Keys from the Legacy Keyring:
+
+bash
+Copy code
+sudo apt-key del 9386B48A1A693C5C
+Import the Keys into the New Keyring Location:
+
+bash
+Copy code
+sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/rocm.gpg --import rocm.gpg
+Set the Correct Permissions:
+
+bash
+Copy code
+sudo chmod 644 /etc/apt/trusted.gpg.d/rocm.gpg
+Update the Package Lists Again:
+
+bash
+Copy code
+sudo apt update
+This process moves the keys from the legacy keyring to the new trusted keyring location, which should resolve the warning.
+
+Feel free to proceed with the installation of the desired packages, and let me know if you need further assistance!
+
+
+
+
+User
+
+oobabooga ROCm Installation
+
+This document contains the steps I had to do to make oobabooga's Text generation web UI work on my machine with an AMD GPU. It mostly describe steps that differ from the official installation described on the GitHub pages, so also open that one in parallel.
+
+I use Artix Linux which should act the same as Arch Linux. I use python directly instead of conda but that should be similar.
+
+    oobabooga ROCm Installation
+        ROCm
+        venv
+        PyTorch
+            With your package manager
+            With PIP
+        bitsandbytes
+            My fork
+            Old fork
+        GPTQ-for-LLaMa
+            cuda
+            triton
+        Finishing
+
+ROCm
+
+You probably need the whole ROCm sdk, on arch it's a meta package called rocm-hip-sdk.
+
+ROCm binaries need to be in your path, on arch everything ROCm related is in /opt/rocm so: export PATH=/opt/rocm/bin:$PATH.
+
+Since I have a RX 6700 XT, I have to fake my GPU with export HSA_OVERRIDE_GFX_VERSION=10.3.0 HCC_AMDGPU_TARGET=gfx1030.
+
+The rest of the guide will assume that you have your environment set correctly.
+venv
+
+Make the venv: python -m venv --system-site-packages venv
+
+I also give access to system packages as I personally installed python ROCm library with my package manager.
+
+Source it: source venv/bin/activate
+PyTorch
+
+You can either install those via your package manager if they on your distro or with PIP.
+With your package manager
+
+I installed those libraries thanks to arch and AUR:
+
+    python-pytorch-opt-rocm
+    python-torchvision-rocm
+    python-torchvaudio-rocm
+
+With PIP
+
+Simply install it: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
+
+Replace 5.4.2 by your version of ROCm.
+bitsandbytes
+
+I made my own fork as I wasn't satisfied with the current one, I let the old one below if this one doesn't work for you.
+My fork
+
+You can find it here: https://github.com/agrocylo/bitsandbytes-rocm
+
+Build the C++ library: make hip
+
+Install the python library: python setup.py install
+Old fork
+
+I had problem with bitsandbytes, had to built from https://github.com/broncotc/bitsandbytes-rocm with patches from https://github.com/0cc4m/bitsandbytes-rocm/tree/rocm and https://github.com/Titaniumtown/bitsandbytes-rocm/tree/patch-1.
+
+This repo have all those applied: https://github.com/Titaniumtown/bitsandbytes-rocm/tree/patch-2
+
+I also had to patch the Makefile to change my library location, adding /opt/rocm/lib and /usr/lib/clang/15.0.7/lib/linux. Also had to change hipcc location to /opt/rocm/bin/hipcc.
+
+Build the C++ library: make hip
+
+Install the python library: python setup.py install
+
+Note that it provide an old version and ooba require a more up to data one, so you might want to remove the version lock in ooba requirements.txt.
+GPTQ-for-LLaMa
+
+Currently they are two different branch of GPTQ, the one you want to use depend of the model, by default assume it's cuda but triton is become popular with newer quantization.
+cuda
+
+Use this fork: https://github.com/WapaMario63/GPTQ-for-LLaMa-ROCm
+
+You have to clone it in the repositories folder with the normal name GPTQ-for-LLaMa.
+
+Build it: python setup_rocm.py install
+triton
+
+On my machine, and in general it seem to be really slow on AMD GPU so if possible try to use model quantized with the cuda branch.
+
+We will have to install triton ROCm fork: https://github.com/ROCmSoftwarePlatform/triton
+
+I used pytorch-triton-rocm-v2.0.0 tag as GPTQ want 2.0.0, just follow their instruction to build and install.
+
+Then you can simply clone the triton branch of GPTQ-for-LLaMa in your repositories folder: https://github.com/qwopqwop200/GPTQ-for-LLaMa
+Finishing
+
+Finally, just install the rest of the requirements: pip install -r requirements.txt
+
+
+ChatGPT
+It looks like you've shared a detailed guide for installing oobabooga's Text generation web UI on a system with an AMD GPU, specifically on Artix or Arch Linux. This guide includes steps for setting up ROCm, creating a virtual environment (venv), installing PyTorch, building and installing bitsandbytes, and setting up GPTQ-for-LLaMa.
+
+Here's a brief summary of the main sections:
+
+ROCm Installation: Installing the ROCm SDK, setting the PATH, and faking the GPU version if necessary.
+Virtual Environment Setup: Creating a virtual environment and sourcing it.
+PyTorch Installation: Installing PyTorch either via the package manager or PIP, depending on the ROCm version.
+bitsandbytes Installation: Building and installing the C++ library and Python library, with options for different forks.
+GPTQ-for-LLaMa Setup: Building and installing either the CUDA or Triton branch, depending on the model and quantization.
+Finishing: Installing the rest of the requirements using the requirements.txt file.
+This guide seems comprehensive and tailored to a specific setup. If you have any questions or need further clarification on any of the steps, please let me know!
+
+
+
+
+User
+ROCm binaries need to be in your path, on arch everything ROCm related is in /opt/rocm so: export PATH=/opt/rocm/bin:$PATH.
+
+ChatGPT
+Yes, the line export PATH=/opt/rocm/bin:$PATH is used to add the ROCm binaries to your system's PATH on Arch Linux. By doing this, you're telling the system where to find the ROCm executables, so you can run them from any location in the terminal.
+
+Here's a breakdown of what each part does:
+
+/opt/rocm/bin: This is the directory where the ROCm binaries are located on Arch Linux.
+$PATH: This represents the current PATH environment variable, which contains a list of directories where the system looks for executable files.
+export PATH=/opt/rocm/bin:$PATH: This command concatenates the ROCm directory with the existing PATH, then exports the new PATH, making the ROCm binaries available system-wide.
+Remember to run this command in every new terminal session where you need access to the ROCm binaries, or add it to a startup file like .bashrc or .bash_profile to make the change permanent for your user.
+
+
+
+
+User
+add it to a startup file like .bashrc isn't sufficient, how can I make these available inevery users's path?
+
+ChatGPT
+To make the ROCm binaries available in every user's path system-wide, you can add the export command to a script in the /etc/profile.d/ directory. Here's how you can do it:
+
+Open a terminal with root privileges.
+
+Create a new script file in the /etc/profile.d/ directory. You can name it something like rocm.sh. Use a text editor like nano or vi to create and edit the file:
+
+bash
+Copy code
+sudo nano /etc/profile.d/rocm.sh
+Add the following line to the file:
+
+bash
+Copy code
+export PATH=/opt/rocm/bin:$PATH
+Save the file and exit the text editor.
+
+Make the script executable by running:
+
+bash
+Copy code
+sudo chmod +x /etc/profile.d/rocm.sh
+You may need to restart the system or log out and log back in for the changes to take effect for all users.
+
+By placing the script in the /etc/profile.d/ directory, the system will run it during the initialization of each user's shell session, adding the ROCm binaries to the PATH for all users.
+
+
+
+
+User
+(base) boris@stable:~/models$ rocminfo 
+ROCk module is loaded
+Unable to open /dev/kfd read-write: Permission denied
+boris is not member of "render" group, the default DRM access group. Users must be a member of the "render" group or another DRM access group in order for ROCm applications to run successfully.
+
+ChatGPT
+The error message is indicating that your user account does not have the necessary permissions to access the GPU. You need to add your user to the "render" group to grant the required permissions.
+
+Here's how you can do it:
+
+Open a terminal.
+
+Run the following command to add your user to the "render" group:
+
+bash
+Copy code
+sudo usermod -a -G render $USER
+You will need to log out and log back in (or restart your system) for the changes to take effect.
+
+After logging back in, you should be able to run rocminfo without any permission errors.
+
+
+
+
+User
+Unable to open /dev/kfd read-write: Permission denied
+
+ChatGPT
+The error message "Unable to open /dev/kfd read-write: Permission denied" indicates that your user does not have the necessary permissions to access the GPU device file /dev/kfd.
+
+You can grant the necessary permissions by adding your user to the appropriate group and setting the correct permissions on the device file.
+
+Here's how you can do it:
+
+Add your user to the "video" group (or "render" group if that's what your system uses):
+
+bash
+Copy code
+sudo usermod -a -G video $USER
+Set the correct permissions on the /dev/kfd device file:
+
+bash
+Copy code
+sudo chmod 666 /dev/kfd
+You may also want to make this change permanent by creating a udev rule. Create a file called 70-kfd.rules in the /etc/udev/rules.d/ directory with the following content:
+
+bash
+Copy code
+KERNEL=="kfd", MODE="0666"
+You can create and edit this file with the following command:
+
+bash
+Copy code
+sudo nano /etc/udev/rules.d/70-kfd.rules
+Then paste the above line and save the file.
+
+Reload the udev rules:
+
+bash
+Copy code
+sudo udevadm control --reload-rules && sudo udevadm trigger
+Log out and log back in (or restart your system) for the changes to take effect.
+
+After following these steps, you should be able to access /dev/kfd without any permission errors.
+
+
+
+
+User
+so the original guide says this: 
+
+Since I have a RX 6700 XT, I have to fake my GPU with export HSA_OVERRIDE_GFX_VERSION=10.3.0 HCC_AMDGPU_TARGET=gfx1030.
+
+But since I have a AMD Vega 56, I looked up the corresponding AMDGPU_TARGET and it seems to be gfx900 according to this table:
+
+
+GCN GFX9 (Vega) [AMD-GCN-GFX900-GFX904-VEGA] [AMD-GCN-GFX906-VEGA7NM] [AMD-GCN-GFX908-CDNA1] [AMD-GCN-GFX90A-CDNA2]
+gfx900 	  	amdgcn 	dGPU 	
+
+    xnack
+
+	
+
+    Absolute flat scratch
+
+	
+
+    rocm-amdhsa
+    pal-amdhsa
+    pal-amdpal
+
+	
+
+    Radeon Vega Frontier Edition
+    Radeon RX Vega 56
+    Radeon RX Vega 64
+    Radeon RX Vega 64 Liquid
+    Radeon Instinct MI25
+
+ChatGPT
+Based on the information you provided for your AMD Vega 56 GPU, you would need to set the environment variables as follows:
+
+bash
+Copy code
+export HSA_OVERRIDE_GFX_VERSION=9.0.0 HCC_AMDGPU_TARGET=gfx900
+This will ensure that the ROCm environment recognizes your specific GPU and uses the correct settings for it.
+
+You can add these lines to your .bashrc file or another startup file to have them automatically set when you open a new terminal session. Alternatively, you can run these commands manually in the terminal where you are working with ROCm.
+
+
+
+
+User
+how do I test if I followed the steps correctly up to this point?
+
+ChatGPT
+You can test if you've followed the steps correctly by running some basic ROCm commands and checking for any errors or warnings. Here's a step-by-step guide:
+
+Check ROCm Info: Run the rocminfo command to see if it recognizes your GPU and provides the correct information.
+
+Check User Group: Ensure that your user is part of the "render" group, as the error message you previously received indicated a permission issue. You can add your user to the group with:
+
+bash
+Copy code
+sudo usermod -a -G render $USER
+Then, log out and log back in or restart your system to apply the changes.
+
+Run a ROCm Sample: If you have the ROCm samples installed, you can try running one of them to see if it executes successfully. Navigate to the samples directory and run a sample code.
+
+Check Environment Variables: Ensure that the environment variables HSA_OVERRIDE_GFX_VERSION and HCC_AMDGPU_TARGET are set correctly for your GPU. You can check them with:
+
+bash
+Copy code
+echo $HSA_OVERRIDE_GFX_VERSION
+echo $HCC_AMDGPU_TARGET
+Run a PyTorch or TensorFlow Test: If you're planning to use ROCm with deep learning frameworks like PyTorch or TensorFlow, you can write a small script to create a tensor on the GPU and perform a basic operation. This will confirm that the framework is able to communicate with the GPU through ROCm.
+
+Check System Logs: Look at the system logs for any ROCm-related errors or warnings. You can use the dmesg command to view the kernel ring buffer, which might contain relevant information.
+
+Reboot if Necessary: If you made changes to system configurations or user groups, a reboot might be necessary to apply all the changes.
+
+Remember, the exact steps might vary depending on your specific setup and what you plan to do with ROCm. The above steps are general guidelines to help you verify that the basic ROCm setup is correct.
+
+
+
+
+User
+(venv) (base) boris@stable:~/models$ git clone https://github.com/agrocylo/bitsandbytes-rocm.git
+Cloning into 'bitsandbytes-rocm'...
+remote: Enumerating objects: 1631, done.
+remote: Counting objects: 100% (826/826), done.
+remote: Compressing objects: 100% (79/79), done.
+remote: Total 1631 (delta 772), reused 747 (delta 747), pack-reused 805
+Receiving objects: 100% (1631/1631), 461.29 KiB | 3.44 MiB/s, done.
+Resolving deltas: 100% (1126/1126), done.
+(venv) (base) boris@stable:~/models$ cd bitsandbytes-rocm/
+(venv) (base) boris@stable:~/models/bitsandbytes-rocm$ make hip
+Makefile:13: WARNING: CUDA_VERSION not set. Call make with CUDA string, for example: make cuda11x CUDA_VERSION=115 or make cpuonly CUDA_VERSION=CPU
+mkdir -p build
+mkdir -p dependencies
+ENVIRONMENT
+============================
+CUDA_VERSION: 
+============================
+NVCC path: /bin/nvcc
+HIPCC path: /usr/bin/hipcc
+GPP path: /usr/bin/g++ VERSION: g++ (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+CUDA_HOME: 
+ROCM_HOME: /usr
+CONDA_PREFIX: /home/boris/miniconda3
+PATH: /home/boris/models/venv/bin:/home/boris/miniconda3/bin:/home/boris/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+LD_LIBRARY_PATH: 
+============================
+/usr/bin/hipcc -std=c++14 -fPIC -c -DNO_HIPBLASLT -I /usr/include -I /home/boris/models/bitsandbytes-rocm/csrc -I /home/boris/miniconda3/include -I /home/boris/models/bitsandbytes-rocm/include -L /usr/lib -lhipblas -lhiprand -lhipsparse -L /home/boris/miniconda3/lib /home/boris/models/bitsandbytes-rocm/csrc/ops.hip -o /home/boris/models/bitsandbytes-rocm/build/ops.o
+clang-16: warning: -lhipblas: 'linker' input unused [-Wunused-command-line-argument]
+clang-16: warning: -lhiprand: 'linker' input unused [-Wunused-command-line-argument]
+clang-16: warning: -lhipsparse: 'linker' input unused [-Wunused-command-line-argument]
+In file included from <built-in>:1:
+In file included from /opt/rocm-5.6.0/llvm/lib/clang/16.0.0/include/__clang_hip_runtime_wrapper.h:50:
+/opt/rocm-5.6.0/llvm/lib/clang/16.0.0/include/cuda_wrappers/cmath:27:15: fatal error: 'cmath' file not found
+#include_next <cmath>
+              ^~~~~~~
+1 error generated when compiling for gfx900.
+make: *** [Makefile:115: hip] Error 1
+(venv) (base) boris@stable:~/models/bitsandbytes-rocm$ 
+
+ChatGPT
+It looks like the compilation failed due to a missing <cmath> header file. This could be due to an incorrect environment setup or a missing dependency.
+
+Here are some steps you can take to troubleshoot the issue:
+
+Check Environment Variables: Ensure that the environment variables are set correctly, especially ROCM_HOME. You may need to set it to the correct path where ROCm is installed.
+
+Check ROCm Version: Make sure that the ROCm version you are using is compatible with the code you are trying to compile. The error message indicates that it's compiling for gfx900, which should be correct for your AMD Vega 56, but you may want to double-check the compatibility.
+
+Install Missing Dependencies: The error might be related to a missing or incorrectly installed dependency. You may need to install or reinstall the ROCm development tools and libraries.
+
+Check Include Paths: The error message indicates that the <cmath> header file is not found. This is a standard C++ header, so it's unusual for it to be missing. You may want to check the include paths and make sure that the compiler can find the standard library headers.
+
+Consult the Repository's Documentation or Issues: If the repository you are trying to build has any specific instructions for building with ROCm, make sure to follow them. You may also want to check the repository's issues to see if anyone else has encountered this problem and if there are any solutions or workarounds.
+
+Try a Clean Build: Sometimes, build artifacts from previous attempts can interfere with the build process. You may want to try cleaning the build directory and starting the build process from scratch.
+
+Consider Reporting the Issue: If you continue to encounter this issue and believe it may be a bug in the code you are trying to compile, consider reporting it to the maintainers of the repository. Provide them with the details of your environment and the exact error message to help them diagnose the issue.
+
+Without more information about your specific setup and the code you are trying to compile, these are general suggestions that may help you troubleshoot the issue.
+
+
+
+
+User
+In file included from <built-in>:1:
+In file included from /opt/rocm-5.6.0/llvm/lib/clang/16.0.0/include/__clang_hip_runtime_wrapper.h:50:
+/opt/rocm-5.6.0/llvm/lib/clang/16.0.0/include/cuda_wrappers/cmath:27:15: fatal error: 'cmath' file not found
+#include_next <cmath>
+              ^~~~~~~
+1 error generated when compiling for gfx900.
+
+ChatGPT
+The error message you're seeing indicates that the compiler is unable to find the <cmath> header file, which is a standard C++ header. This could be due to a misconfiguration in the build system or an issue with the environment.
+
+Here are some specific steps you can take to try to resolve this issue:
+
+Check the Compiler: Make sure you are using a compatible compiler with ROCm. The error message indicates that clang-16 is being used. Verify that this version is supported by ROCm and the code you are compiling.
+
+Check the Include Paths: The error may be due to incorrect include paths. You can check the include paths used by the compiler with the command echo | clang-16 -E -v -. Look for the directory that should contain the standard C++ headers, including <cmath>.
+
+Reinstall the Compiler or Standard Library: If the standard headers are missing, it may be necessary to reinstall the compiler or the standard library. On Ubuntu, you might use the following commands:
+
+bash
+Copy code
+sudo apt-get install --reinstall build-essential
+sudo apt-get install --reinstall libc++-dev libc++abi-dev
+Check the Makefile: Look at the Makefile or build system for the project and ensure that it is configured correctly for your system. There may be specific flags or settings required for ROCm or your specific GPU.
+
+Consult the Documentation: Check the documentation for the specific project you are building, as well as ROCm's documentation. There may be specific instructions or known issues related to building on your system.
+
+Try a Different Version: If you continue to encounter issues, you might try a different version of ROCm or the code you are compiling. There may be compatibility issues with the specific versions you are using.
+
+Consider Reporting the Issue: If you believe this is a bug in the code or the build system, consider reporting it to the maintainers of the project. Provide them with detailed information about your system, the exact commands you ran, and the full error message to help them diagnose the issue.
+
+Without access to the specific code and system configuration, these are general suggestions that may help you troubleshoot the issue. If you continue to encounter difficulties, you may want to seek assistance from a forum or community specific to ROCm or the project you are building.
+
+
+
+
+User
+ROCm
+
+Basic steps.
+
+    make hip
+    python setup.py install
+
+To run these steps you will need to have the hipcc compiler installed that comes with a ROCm installation. hipcc need to be in your path.
+
+If your GPU is not compatible with ROCm, for example if you have an RX 6700 XT, cross compiling to a similar GPU should work. To do that set HCC_AMDGPU_TARGET to that similar GPU for example gfx1030 should work for an RX 6700 XT.
+
+ChatGPT
+It seems like you are following the instructions for building a project with ROCm, and you've encountered an error during the compilation step.
+
+Given the instructions and the error message you've provided, here are some specific steps you can take to try to resolve the issue:
+
+Ensure hipcc is in Your Path: The instructions mention that hipcc needs to be in your path. You can verify this by running:
+
+bash
+Copy code
+which hipcc
+If the command doesn't return a path, you'll need to add the directory containing hipcc to your PATH environment variable. This might be something like:
+
+bash
+Copy code
+export PATH=/opt/rocm/bin:$PATH
+Set the Correct Target: Since you have an AMD Vega 56, you should set the HCC_AMDGPU_TARGET to gfx900. You can do this by running:
+
+bash
+Copy code
+export HCC_AMDGPU_TARGET=gfx900
+Re-run the Make Command: After setting the environment variables, try running the make hip command again.
+
+Check for Additional Dependencies: Ensure that all required dependencies for ROCm and the specific project are installed. This might include specific versions of the HIP runtime, ROCm libraries, or other development tools.
+
+Consult the Project's Documentation: If the project has specific documentation or a README file, consult it for any additional instructions or known issues related to building with ROCm.
+
+Consider a Clean Build: If you've made multiple attempts to build the project, consider cleaning the build directory and starting fresh. This might involve running a make clean command or manually deleting the build directory.
+
+Check for Updates or Patches: Check the project's repository or website for any updates, patches, or specific instructions related to your GPU or ROCm version.
+
+If you continue to encounter issues, consider seeking assistance from the project's maintainers or a community specific to ROCm or the project you are building. Provide them with detailed information about your system, the commands you ran, and the full error message to help them diagnose the issue.
+
+
+
+
+User
+
+Skip to content
+
+Code
+Issues 413
+Pull requests 5
+Discussions
+
+More
+Jump to bottom
+Missing cmath/libcxx in ROCm 5.3.0 #1843
+Open
+joelandman opened this issue Oct 24, 2022 · 9 comments
+Open
+Missing cmath/libcxx in ROCm 5.3.0
+#1843
+joelandman opened this issue Oct 24, 2022 · 9 comments
+Comments
+joelandman commented Oct 24, 2022
+
+From the HIP examples repo
+
+Machine is a zen2 Ryzen 7 4800H, 64 GB ram, running Linux Mint (Ubuntu derivative).
+
+joe@zap:~/build/HIP-Examples$ ./test_all.sh 
+
+==== vectorAdd ====
+rm -f ./vectoradd_hip.exe
+rm -f vectoradd_hip.o
+rm -f /opt/rocm-5.3.0//hip/src/*.o
+/opt/rocm-5.3.0//hip/bin/hipcc -g   -c -o vectoradd_hip.o vectoradd_hip.cpp
+In file included from <built-in>:1:
+/opt/rocm-5.3.0/llvm/lib/clang/15.0.0/include/__clang_hip_runtime_wrapper.h:50:10: fatal error: 'cmath' file not found
+#include <cmath>
+         ^~~~~~~
+1 error generated when compiling for gfx90c.
+make: *** [<builtin>: vectoradd_hip.o] Error 1
+...
+
+Seems to be missing cmath which is usually in a clang libcxx/include directory. I copied the missing headers to a local path, pointed added an include path, and then it complains about a configuration file missing.
+
+rm -f ./vectoradd_hip.exe
+rm -f vectoradd_hip.o
+rm -f /opt/rocm-5.3.0//hip/src/*.o
+joe@zap:~/build/HIP-Examples/vectorAdd$ make
+/opt/rocm-5.3.0//hip/bin/hipcc -g -I/home/joe/nlytiq/dev/nlytiq-base/llvm-project-15.0.3.src/libcxx/include   -c -o vectoradd_hip.o vectoradd_hip.cpp
+In file included from <built-in>:1:
+In file included from /opt/rocm-5.3.0/llvm/lib/clang/15.0.0/include/__clang_hip_runtime_wrapper.h:50:
+In file included from /home/joe/nlytiq/dev/nlytiq-base/llvm-project-15.0.3.src/libcxx/include/cmath:307:
+In file included from /home/joe/nlytiq/dev/nlytiq-base/llvm-project-15.0.3.src/libcxx/include/__assert:13:
+/home/joe/nlytiq/dev/nlytiq-base/llvm-project-15.0.3.src/libcxx/include/__config:13:10: fatal error: '__config_site' file not found
+#include <__config_site>
+         ^~~~~~~~~~~~~~~
+1 error generated when compiling for gfx90c.
+make: *** [<builtin>: vectoradd_hip.o] Error 1
+
+elbriggs commented Nov 29, 2022
+
+I ran into this same issue on Ubuntu 22.04.1 with rocm 5.3.3 installed using the package manger. Worked around it by building llvm from the github release.
+elliottbinder commented Dec 6, 2022
+
+I'm having the same issue w/ 5.4 on 22.04.1. Did you follow the instructions here, @elbriggs?
+I did that, followed by build install but hipcc is still not able to find cmath.
+elbriggs commented Dec 6, 2022 •
+
+I did but I found a better way. Installing libstdc++-12-dev fixes the issue on 22.04.1 with 5.4 without requiring llvm.
+elliottbinder commented Dec 6, 2022
+
+Fixed it for me too, thanks @elbriggs!
+zilverberg commented Dec 6, 2022
+
+Fixed it for me too.
+Much appreciated @elbriggs!
+@zilverberg zilverberg mentioned this issue Dec 6, 2022
+Missing cmath/libcxx ROCmSoftwarePlatform/rocHPCG#56
+Closed
+@ghostplant ghostplant mentioned this issue Jan 5, 2023
+Fail to compile, when I use "AMDGFX=gfx1031 BACKEND=c-rocm_win64 antares" microsoft/antares#365
+Closed
+neoblizz commented Feb 5, 2023 •
+
+Ran into the same issue when I upgraded my Ubuntu 20.04 to 22.04, system information:
+
+Distributor ID: Ubuntu
+Description:    Ubuntu 22.04.1 LTS
+Release:        22.04
+Codename:       jammy
+
+hipcc information:
+
+HIP version: 5.4.22801-aaa1e3d8
+AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.0 22465 d6f0fe8b22e3d8ce0f2cbd657ea14b16043018a5)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /opt/rocm/llvm/bin
+
+The above fix of sudo apt-get install libstdc++-12-dev worked for me as well. The error initially showed up as "Failed to find a default HIP architecture", so that might be related. Now it finds the correct architecture being compiled for and not the gfx000.
+ByThisBeard commented Apr 8, 2023
+
+    I did but I found a better way. Installing libstdc++-12-dev fixes the issue on 22.04.1 with 5.4 without requiring llvm.
+
+I don't know what this is, or what it did - but the error is gone. Praise!
+@dmikushin dmikushin mentioned this issue Jun 15, 2023
+[CMake] enable_language(HIP) is broken in 5.4.0 and 5.4.2 ROCm-Developer-Tools/HIP#3141
+Open
+Letter-R commented Jun 21, 2023
+
+    I did but I found a better way. Installing libstdc++-12-dev fixes the issue on 22.04.1 with 5.4 without requiring llvm.
+
+It work! Thanks!
+trisweb commented Jul 2, 2023
+
+It's insane that to get ROCm compilation working you need a secret incantation from a random github issue... but thanks!
+@nibarulabs nibarulabs mentioned this issue Jul 3, 2023
+Linux Installer doesn't support AMD? oobabooga/one-click-installers#94
+Closed
+@cgmillette cgmillette mentioned this issue Jul 12, 2023
+Errors when I'm trying to building rocWMMA on rocm5.3.0 ROCmSoftwarePlatform/rocWMMA#205
+Closed
+Remember, contributions to this repository should follow its contributing guidelines.
+Assignees
+No one assigned
+Labels
+None yet
+Projects
+None yet
+Milestone
+No milestone
+Development
+
+No branches or pull requests
+8 participants
+@trisweb
+@elbriggs
+@joelandman
+@elliottbinder
+@neoblizz
+@Letter-R
+@zilverberg
+@ByThisBeard
+Footer
+© 2023 GitHub, Inc.
+Footer navigation
+
+    Terms
+    Privacy
+    Security
+    Status
+    Docs
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
+
+
+ChatGPT
+It looks like you've found a GitHub issue that describes the exact problem you're facing with the missing 'cmath' file in ROCm. The issue also includes a solution that has worked for several users.
+
+Here's the solution from the GitHub issue:
+
+Install the libstdc++-12-dev package by running the following command:
+
+bash
+Copy code
+sudo apt-get install libstdc++-12-dev
+After installing the package, try running the make hip command again.
+
+This solution appears to have resolved the issue for multiple users on different versions of Ubuntu and ROCm, so it's likely to work for your situation as well.
+
+If you continue to encounter problems, you may want to follow the GitHub issue for any updates or additional solutions. You could also consider contributing to the discussion on GitHub if you need further assistance, as the participants in the issue are likely familiar with the specific problem and environment.
+
+
+
+
+User
+In file included from <built-in>:1:
+In file included from /opt/rocm-5.6.0/llvm/lib/clang/16.0.0/include/__clang_hip_runtime_wrapper.h:50:
+/opt/rocm-5.6.0/llvm/lib/clang/16.0.0/include/cuda_wrappers/cmath:27:15: fatal error: 'cmath' file not found
+#include_next <cmath>
+              ^~~~~~~
+1 error generated when compiling for gfx900.
+make: *** [Makefile:115: hip] Error 1
+(venv) (base) boris@stable:~/models/bitsandbytes-rocm$ sudo apt install libstdc++-12-dev
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Suggested packages:
+  libstdc++-12-doc
+The following NEW packages will be installed:
+  libstdc++-12-dev
+0 upgraded, 1 newly installed, 0 to remove and 13 not upgraded.
+Need to get 2.192 kB of archives.
+After this operation, 20,0 MB of additional disk space will be used.
+Get:1 http://be.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libstdc++-12-dev amd64 12.3.0-1ubuntu1~22.04 [2.192 kB]
+Fetched 2.192 kB in 1s (2.188 kB/s)         
+Selecting previously unselected package libstdc++-12-dev:amd64.
+(Reading database ... 186133 files and directories currently installed.)
+Preparing to unpack .../libstdc++-12-dev_12.3.0-1ubuntu1~22.04_amd64.deb ..
+.
+Unpacking libstdc++-12-dev:amd64 (12.3.0-1ubuntu1~22.04) ...
+Setting up libstdc++-12-dev:amd64 (12.3.0-1ubuntu1~22.04) ...
+(venv) (base) boris@stable:~/models/bitsandbytes-rocm$ make hip
+Makefile:13: WARNING: CUDA_VERSION not set. Call make with CUDA string, for example: make cuda11x CUDA_VERSION=115 or make cpuonly CUDA_VERSION=CPU
+ENVIRONMENT
+============================
+CUDA_VERSION: 
+============================
+NVCC path: /bin/nvcc
+HIPCC path: /usr/bin/hipcc
+GPP path: /usr/bin/g++ VERSION: g++ (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+CUDA_HOME: 
+ROCM_HOME: /usr
+CONDA_PREFIX: /home/boris/miniconda3
+PATH: /home/boris/models/venv/bin:/home/boris/miniconda3/bin:/home/boris/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+LD_LIBRARY_PATH: 
+============================
+/usr/bin/hipcc -std=c++14 -fPIC -c -DNO_HIPBLASLT -I /usr/include -I /home/boris/models/bitsandbytes-rocm/csrc -I /home/boris/miniconda3/include -I /home/boris/models/bitsandbytes-rocm/include -L /usr/lib -lhipblas -lhiprand -lhipsparse -L /home/boris/miniconda3/lib /home/boris/models/bitsandbytes-rocm/csrc/ops.hip -o /home/boris/models/bitsandbytes-rocm/build/ops.o
+clang-16: warning: -lhipblas: 'linker' input unused [-Wunused-command-line-argument]
+clang-16: warning: -lhiprand: 'linker' input unused [-Wunused-command-line-argument]
+clang-16: warning: -lhipsparse: 'linker' input unused [-Wunused-command-line-argument]
+In file included from /home/boris/models/bitsandbytes-rocm/csrc/ops.hip:16:
+In file included from /home/boris/models/bitsandbytes-rocm/include/BinSearch.h:11:
+In file included from /home/boris/models/bitsandbytes-rocm/include/Algo-Direct2.h:3:
+/home/boris/models/bitsandbytes-rocm/include/Algo-Direct-Common.h:193:17: warning: logical not is only applied to the left hand side of this comparison [-Wlogical-not-parentheses]
+                myassert(Gap==1, "if Gap>1 then X workspace must be provided");
+                ^           ~~
+/home/boris/models/bitsandbytes-rocm/include/Portable.h:53:33: note: expanded from macro 'myassert'
+#define myassert(cond, msg) if (!cond){ std::ostringstream os; os << "\nassertion failed: " << #cond << ", " << msg << "\n"; throw std::invalid_argument(os.str()); }
+                                ^~~~~
+/home/boris/models/bitsandbytes-rocm/include/Algo-Direct-Common.h:193:17: note: add parentheses after the '!' to evaluate the comparison first
+/home/boris/models/bitsandbytes-rocm/include/Portable.h:53:33: note: expanded from macro 'myassert'
+#define myassert(cond, msg) if (!cond){ std::ostringstream os; os << "\nassertion failed: " << #cond << ", " << msg << "\n"; throw std::invalid_argument(os.str()); }
+                                ^
+/home/boris/models/bitsandbytes-rocm/include/Algo-Direct-Common.h:193:17: note: add parentheses around left hand side expression to silence this warning
+/home/boris/models/bitsandbytes-rocm/include/Portable.h:53:33: note: expanded from macro 'myassert'
+#define myassert(cond, msg) if (!cond){ std::ostringstream os; os << "\nassertion failed: " << #cond << ", " << msg << "\n"; throw std::invalid_argument(os.str()); }
+                                ^
+1 warning generated when compiling for gfx900.
+In file included from /home/boris/models/bitsandbytes-rocm/csrc/ops.hip:16:
+In file included from /home/boris/models/bitsandbytes-rocm/include/BinSearch.h:11:
+In file included from /home/boris/models/bitsandbytes-rocm/include/Algo-Direct2.h:3:
+/home/boris/models/bitsandbytes-rocm/include/Algo-Direct-Common.h:193:17: warning: logical not is only applied to the left hand side of this comparison [-Wlogical-not-parentheses]
+                myassert(Gap==1, "if Gap>1 then X workspace must be provided");
+                ^           ~~
+/home/boris/models/bitsandbytes-rocm/include/Portable.h:53:33: note: expanded from macro 'myassert'
+#define myassert(cond, msg) if (!cond){ std::ostringstream os; os << "\nassertion failed: " << #cond << ", " << msg << "\n"; throw std::invalid_argument(os.str()); }
+                                ^~~~~
+/home/boris/models/bitsandbytes-rocm/include/Algo-Direct-Common.h:193:17: note: add parentheses after the '!' to evaluate the comparison first
+/home/boris/models/bitsandbytes-rocm/include/Portable.h:53:33: note: expanded from macro 'myassert'
+#define myassert(cond, msg) if (!cond){ std::ostringstream os; os << "\nassertion failed: " << #cond << ", " << msg << "\n"; throw std::invalid_argument(os.str()); }
+                                ^
+/home/boris/models/bitsandbytes-rocm/include/Algo-Direct-Common.h:193:17: note: add parentheses around left hand side expression to silence this warning
+/home/boris/models/bitsandbytes-rocm/include/Portable.h:53:33: note: expanded from macro 'myassert'
+#define myassert(cond, msg) if (!cond){ std::ostringstream os; os << "\nassertion failed: " << #cond << ", " << msg << "\n"; throw std::invalid_argument(os.str()); }
+                                ^
+1 warning generated when compiling for host.
+/usr/bin/hipcc -std=c++14 -fPIC -c -DNO_HIPBLASLT -I /usr/include -I /home/boris/models/bitsandbytes-rocm/csrc -I /home/boris/miniconda3/include -I /home/boris/models/bitsandbytes-rocm/include -L /usr/lib -lhipblas -lhiprand -lhipsparse -L /home/boris/miniconda3/lib /home/boris/models/bitsandbytes-rocm/csrc/kernels.hip -o /home/boris/models/bitsandbytes-rocm/build/kernels.o
+clang-16: warning: -lhipblas: 'linker' input unused [-Wunused-command-line-argument]
+clang-16: warning: -lhiprand: 'linker' input unused [-Wunused-command-line-argument]
+clang-16: warning: -lhipsparse: 'linker' input unused [-Wunused-command-line-argument]
+/home/boris/models/bitsandbytes-rocm/csrc/kernels.hip:2414:17: warning: loop not unrolled: the optimizer was unable to perform the requested transformation; the transformation might be disabled or specified as part of an unsupported transformation ordering [-Wpass-failed=transform-warning]
+__global__ void kspmm_coo_very_sparse_naive(int *max_count, int *max_idx, int *offset_rowidx, int *rowidx, int *colidx, half *values, T *B, half *out, float * __restrict__ const dequant_stats, int nnz, int rowsA, int rowsB, int colsB)
+                ^
+/home/boris/models/bitsandbytes-rocm/csrc/kernels.hip:2414:17: warning: loop not unrolled: the optimizer was unable to perform the requested transformation; the transformation might be disabled or specified as part of an unsupported transformation ordering [-Wpass-failed=transform-warning]
+/home/boris/models/bitsandbytes-rocm/csrc/kernels.hip:2414:17: warning: loop not unrolled: the optimizer was unable to perform the requested transformation; the transformation might be disabled or specified as part of an unsupported transformation ordering [-Wpass-failed=transform-warning]
+/home/boris/models/bitsandbytes-rocm/csrc/kernels.hip:2414:17: warning: loop not unrolled: the optimizer was unable to perform the requested transformation; the transformation might be disabled or specified as part of an unsupported transformation ordering [-Wpass-failed=transform-warning]
+/home/boris/models/bitsandbytes-rocm/csrc/kernels.hip:2414:17: warning: loop not unrolled: the optimizer was unable to perform the requested transformation; the transformation might be disabled or specified as part of an unsupported transformation ordering [-Wpass-failed=transform-warning]
+/home/boris/models/bitsandbytes-rocm/csrc/kernels.hip:2414:17: warning: loop not unrolled: the optimizer was unable to perform the requested transformation; the transformation might be disabled or specified as part of an unsupported transformation ordering [-Wpass-failed=transform-warning]
+6 warnings generated when compiling for gfx900.
+/usr/bin/g++ -std=c++14 -D__HIP_PLATFORM_AMD__ -DBUILD_HIP -DNO_HIPBLASLT -shared -fPIC -I /usr/include -I /home/boris/models/bitsandbytes-rocm/csrc -I /home/boris/miniconda3/include -I /home/boris/models/bitsandbytes-rocm/include /home/boris/models/bitsandbytes-rocm/build/ops.o /home/boris/models/bitsandbytes-rocm/build/kernels.o /home/boris/models/bitsandbytes-rocm/csrc/common.cpp /home/boris/models/bitsandbytes-rocm/csrc/cpu_ops.cpp /home/boris/models/bitsandbytes-rocm/csrc/pythonInterface.c -o ./bitsandbytes/libbitsandbytes_hip_nohipblaslt.so -L /usr/lib -lhipblas -lhiprand -lhipsparse -L /home/boris/miniconda3/lib
+In file included from /home/boris/models/bitsandbytes-rocm/csrc/pythonInterface.c:10:
+/home/boris/models/bitsandbytes-rocm/csrc/ops.hiph:15:10: fatal error: hip/hip_runtime_api.h: No such file or directory
+   15 | #include <hip/hip_runtime_api.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make: *** [Makefile:117: hip] Error 1
+
+ChatGPT
+It looks like you're encountering an error related to the ROCm compilation process. The error message indicates that the file hip/hip_runtime_api.h is not found.
+
+The previous error related to the missing cmath file was resolved by installing libstdc++-12-dev, but now you're facing a different issue.
+
+Here's what you can try to resolve the issue:
+
+Check the ROCm Installation: Ensure that ROCm is installed correctly and the required paths are set. You might need to add the ROCm path to your system's include directories.
+
+Set Environment Variables: You may need to set the HIP_PATH and ROCM_PATH environment variables to point to the correct locations. You can do this by running the following commands in your terminal (adjust the paths as needed):
+
+bash
+Copy code
+export HIP_PATH=/opt/rocm/hip
+export ROCM_PATH=/opt/rocm
+Update the Makefile: If the above steps don't resolve the issue, you may need to update the Makefile to include the correct paths for the ROCm and HIP libraries. Look for lines in the Makefile where include paths are set and ensure they point to the correct locations for your ROCm installation.
+
+Reinstall ROCm: If all else fails, you may want to consider reinstalling ROCm to ensure that all necessary files and dependencies are correctly installed.
+
+Please note that the exact solution may vary depending on your specific system configuration and ROCm version. If you continue to encounter issues, consider referring to the official ROCm documentation or seeking support from the ROCm community.
+
+
+
+
+User
+I need to install a tool that gives me an overview of current GPU  usage.
+
+ChatGPT
+Sure! If you're using a system with AMD GPUs and ROCm, you can use the rocm-smi tool to monitor GPU usage. Here's how you can install and use it:
+
+Installing ROCm SMI
+If you have ROCm installed, the rocm-smi tool should already be available on your system. You can run it directly from the command line.
+
+Using ROCm SMI
+To get an overview of the current GPU usage, you can run the following command in your terminal:
+
+bash
+Copy code
+rocm-smi
+This will display information about your GPU(s), including temperature, fan speed, power usage, memory usage, and more.
+
+Other Tools
+If you're looking for more detailed monitoring and visualization, you might consider using other third-party GPU monitoring tools that support AMD GPUs. Some popular options include:
+
+Radeon GPU Profiler: A tool specifically designed for AMD GPUs, providing detailed profiling information.
+MangoHUD: A monitoring overlay for Linux that can display GPU statistics in real-time while running applications.
+Please note that compatibility and features may vary depending on your specific GPU model and system configuration. Always refer to the official documentation for the tools you choose to ensure they meet your needs.
+
+
+
+
+User
+OutOfMemoryError: HIP out of memory. Tried to allocate 4.50 GiB (GPU 0; 7.98 GiB total capacity; 3.15 GiB already allocated; 4.10 GiB free; 3.79 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation. See documentation for Memory Management and PYTORCH_HIP_ALLOC_CONF
+
+Time taken: 2 min. 0.5 sec.
+
+A: 4.90 GB, R: 5.95 GB, Sys: 6.0/7.98438 GB (75.6%
+
+ChatGPT
+The error message you're seeing indicates that your GPU ran out of memory during the operation. This can happen when you're working with large datasets or complex models that require more GPU memory than is available.
+
+Here are some strategies you can try to resolve the issue:
+
+Reduce Batch Size: If you're training a model, try reducing the batch size. Smaller batches will use less GPU memory.
+
+Use a Simpler Model: If possible, consider using a model with fewer parameters or layers. Simpler models generally require less memory.
+
+Free Up GPU Memory: Make sure to clear any unnecessary variables and tensors from the GPU memory. In PyTorch, you can use torch.cuda.empty_cache() to clear cached memory.
+
+Adjust Memory Allocation Configuration: The error message suggests setting max_split_size_mb to avoid fragmentation. You can also try setting the PYTORCH_HIP_ALLOC_CONF environment variable as suggested in the error message.
+
+Use a GPU with More Memory: If the above strategies don't help, you may need to use a GPU with more memory to handle the workload.
+
+Monitor GPU Usage: Use tools like rocm-smi to monitor GPU memory usage and identify what might be consuming the memory.
+
+Check for Memory Leaks: Ensure that there are no memory leaks in your code that might be consuming GPU memory over time.
+
+Distribute the Workload: If you have access to multiple GPUs, consider distributing the workload across them.
+
+Remember, the exact solution may depend on the specific operation you're performing and the structure of your code. It might require some experimentation and fine-tuning to find the right balance between performance and memory usage.
+
+
+
+
+User
+(base) boris@stable:~/models/oobabooga_linux$ ./start_linux.sh 
+
+
+*******************************************************************
+* WARNING: You haven't downloaded any model yet.
+* Once the web UI launches, head over to the "Model" tab and download one.
+*******************************************************************
+
+
+Traceback (most recent call last):
+  File "/home/boris/models/oobabooga_linux/text-generation-webui/server.py", line 28, in <module>
+    from modules import (
+  File "/home/boris/models/oobabooga_linux/text-generation-webui/modules/chat.py", line 17, in <module>
+    from modules.text_generation import (
+  File "/home/boris/models/oobabooga_linux/text-generation-webui/modules/text_generation.py", line 22, in <module>
+    from modules.models import clear_torch_cache, local_rank
+  File "/home/boris/models/oobabooga_linux/text-generation-webui/modules/models.py", line 10, in <module>
+    from accelerate import infer_auto_device_map, init_empty_weights
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/accelerate/__init__.py", line 3, in <module>
+    from .accelerator import Accelerator
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/accelerate/accelerator.py", line 35, in <module>
+    from .checkpointing import load_accelerator_state, load_custom_state, save_accelerator_state, save_custom_state
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/accelerate/checkpointing.py", line 24, in <module>
+    from .utils import (
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/accelerate/utils/__init__.py", line 131, in <module>
+    from .bnb import has_4bit_bnb_layers, load_and_quantize_model
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/accelerate/utils/bnb.py", line 42, in <module>
+    import bitsandbytes as bnb
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/__init__.py", line 6, in <module>
+    from . import cuda_setup, utils, research
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/research/__init__.py", line 1, in <module>
+    from . import nn
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/research/nn/__init__.py", line 1, in <module>
+    from .modules import LinearFP8Mixed, LinearFP8Global
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/research/nn/modules.py", line 8, in <module>
+    from bitsandbytes.optim import GlobalOptimManager
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/optim/__init__.py", line 6, in <module>
+    from bitsandbytes.cextension import COMPILED_WITH_CUDA
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/cextension.py", line 13, in <module>
+    setup.run_cuda_setup()
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/cuda_setup/main.py", line 120, in run_cuda_setup
+    binary_name, cudart_path, cc, cuda_version_string = evaluate_cuda_setup()
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/cuda_setup/main.py", line 341, in evaluate_cuda_setup
+    cuda_version_string = get_cuda_version()
+  File "/home/boris/models/oobabooga_linux/installer_files/env/lib/python3.10/site-packages/bitsandbytes/cuda_setup/main.py", line 311, in get_cuda_version
+    major, minor = map(int, torch.version.cuda.split("."))
+AttributeError: 'NoneType' object has no attribute 'split'
+
+ChatGPT
+The error you're encountering is related to the CUDA version being None in the context of PyTorch, and the code is attempting to split this None value, leading to an AttributeError.
+
+Here's what you can do to troubleshoot the issue:
+
+Check CUDA Installation: Ensure that CUDA is properly installed on your system. You can verify this by running the command nvcc --version in your terminal.
+
+Check PyTorch CUDA Compatibility: Make sure that the version of PyTorch you are using is compatible with the CUDA version installed on your system. You can check the PyTorch version with print(torch.__version__) and the CUDA version with print(torch.version.cuda) in a Python script or interactive session.
+
+Reinstall PyTorch with CUDA Support: If PyTorch is not recognizing CUDA, you may need to reinstall PyTorch with CUDA support. You can do this with the following command (adjusting for the specific CUDA version you have):
+
+bash
+Copy code
+pip install torch torchvision torchaudio -f https://download.pytorch.org/whl/cu111/torch_stable.html
+Check Environment Variables: Ensure that the environment variables related to CUDA are set correctly. This includes PATH and LD_LIBRARY_PATH.
+
+Check the Code: If the above steps don't resolve the issue, there may be a problem in the code itself, particularly in the bitsandbytes package. If this is a third-party package, consider reaching out to the maintainers or checking their documentation for support.
+
+Use a Virtual Environment: If you're not already doing so, consider setting up a virtual environment with the correct dependencies. This can help isolate the problem and ensure that the correct versions of all required packages are being used.
+
+Consult the Documentation: If the software you're trying to run has specific installation or setup instructions, make sure to follow them closely. There may be specific steps or configurations required for your system.
+
+Without more specific information about your system and the exact code you're running, these are general troubleshooting steps that may help you resolve the issue.
