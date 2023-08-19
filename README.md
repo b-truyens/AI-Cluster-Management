@@ -3,14 +3,17 @@
 ![Gamebox Image](./Results/Images/gamebox.png)
 
 An integrated AI system with Audio-to-Text, Text-to-Image, NLP models, and centralized management. Includes worker models, managers, and ethical considerations.
+
 ## Table of Contents
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
+- [Examples](#examples)
 - [Documentation](./Docs)
 - [Results](./Results)
   - [Images](./Results/Images)
 - [License](#license)
+
 
 ## Overview
 ...
@@ -59,6 +62,25 @@ https://github.com/b-truyens/text-generation-webui
 
 https://github.com/lshqqytiger/stable-diffusion-webui-directml
 
+# Examples
+Explore some of the visual results produced by the AI Cluster Management system:
+
+### City Landscape
+![City Landscape](./Results/Images/city.png)
+
+### Jungle Landscape
+![Jungle Landscape](./Results/Images/jungle-landscape.png)
+
+### Realistic City
+![Realistic City](./Results/Images/realistic-city.png)
+
+### Veranda View
+![Veranda View](./Results/Images/veranda.png)
+
+Feel free to explore more examples in the [Results/Images](./Results/Images) directory.
+
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for the full text.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
