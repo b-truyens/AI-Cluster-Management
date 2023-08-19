@@ -53,5 +53,12 @@ The AI Cluster Management project is more than a technological endeavor; it's a 
 ## Installation
 ...
 
+https://github.com/b-truyens/stable-diffusion-webui
+
+https://github.com/b-truyens/text-generation-webui
+
+https://github.com/lshqqytiger/stable-diffusion-webui-directml
+
+
 ## License
 This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for the full text.
